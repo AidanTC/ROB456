@@ -63,6 +63,10 @@ def sample_boolean_variable(info_variable):
     # See slides - if the random variable is below the probability of returning true, return true. Otherwise, return false
     # TODO: Return True or False
     # YOUR CODE HERE
+    if zero_to_one < info_variable["prob_return_true"]:
+        return True
+    else: 
+        return False
 
 
 # Test function
@@ -108,6 +112,7 @@ def sample_discrete_variable(info_variable):
 
     # First, I'll do some checks for you
     for v in info_variable.values():
+        # print(v)
         # Probabilities have to be between 0 and 1...
         if v < 0.0 or v > 1.0:
             ValueError(f"Value {v} not between zero and one")
@@ -118,6 +123,7 @@ def sample_discrete_variable(info_variable):
 
     # Now, use random to generate a number between 0 and one
     zero_to_one = random.uniform()
+    # print(zero_to_one)
 
     # See slides - "stack" the probabilities - if the value lies in the discrete value's stack, return that one
     #  needs a for loop
@@ -126,6 +132,15 @@ def sample_discrete_variable(info_variable):
     #
     # TODO - return one of the key values in the dictionary.
     # YOUR CODE HERE
+    valCount = 0
+    for key, val in info_variable.items():
+        if zero_to_one < val + valCount:
+            return key 
+        valCount += val
+
+    print("shouldnt happen, return -1 to show it broke")
+    return -1
+
 
 
 def test_discrete():
@@ -177,6 +192,7 @@ def sample_bin_variable(info_variable):
 
     # Returns a number from 0 to 1
     zero_to_one = random.uniform()
+    # print("sampled ", zero_to_one)
 
     # TODO:
     #  Step 1: Calculate the size of each bin ON THE UNIT INTERVAL
@@ -184,6 +200,15 @@ def sample_bin_variable(info_variable):
     #  Step 3: Calculate the center of the bin with that index on the (start, stop) interval
     # Note: You could find the index of the bin on the (start,stop) interval, but that requires more math...
     # YOUR CODE HERE
+
+    # bin size is abs start + abs end / num bins
+    binSize = (abs(info_variable["start"]) + abs(info_variable["stop"])) / info_variable["n bins"]
+
+    # scale the sample and remove decimal
+    binSample = info_variable["n bins"] * zero_to_one
+    binSample = np.floor(binSample)
+
+    return info_variable["start"] + (binSize * binSample)
 
 
 def test_bins():
@@ -228,6 +253,8 @@ def sample_gaussian_variable(info_variable):
 
     # TODO: Call random.normal here and return a number
     # YOUR CODE HERE
+    # mu = mean, sigma = standard deviation
+    return np.random.normal(info_variable["mu"], info_variable["sigma"])
 
 
 def test_gaussian(b_print=True):
@@ -450,3 +477,14 @@ if __name__ == '__main__':
     # windows to show
     plt.show()
     print("Done\n")
+
+
+
+
+# TODO - set to correct value               
+# List of names (creates a set)
+# worked_with_names = {"no one"}
+# # List of URLS TAF24 (creates a set)
+# websites = {"https://numpy.org/doc/stable/reference/random/generated/numpy.random.normal.html", "https://docs.python.org/3/tutorial/datastructures.html"}
+# # Approximate number of hours, including lab/in-class time
+# hours = 7

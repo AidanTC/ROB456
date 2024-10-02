@@ -7,3 +7,6 @@ skipped because bad vibes and didn't work!
     conda install skimage
 
 avast does weird shit on Desktop, im assuming it still works tho
+
+Looks like github doesnt really work with juypiter notebooks
+code should be written or copied into the .py file so that it can be sent around
