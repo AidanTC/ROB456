@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from numpy import random
 
 
 # This class keeps track of the "ground truth" of the robot's location
@@ -63,6 +64,19 @@ class RobotGroundTruth:
         # Check that the probabilities sum to one and are between 0 and 1
 
         # YOUR CODE HERE
+        dont_move = 1 - move_left - move_right
+        self.move_probabilities['move_left'] = {'left': move_left, 'right': move_right, 'dont_move': dont_move}
+        prob_sum = 0
+        for prob in self.move_probabilities['move_left'].values():
+            # print(prob)
+            if prob < 0:
+                print("error: probabilities should be positive")
+                return -1
+            prob_sum += prob
+
+        if prob_sum != 1:
+            print("error: probabilities should sum to 1")
+            return -1
 
     def set_move_right_probabilities(self, move_left=0.05, move_right=0.8):
         """ Set the three discrete probabilities for moving right (should sum to one and all be positive)
@@ -76,6 +90,18 @@ class RobotGroundTruth:
         # Check that the probabilities sum to one and are between 0 and 1
 
         # YOUR CODE HERE
+        dont_move = 1 - move_left - move_right
+        self.move_probabilities['move_right'] = {'left': move_left, 'right': move_right, 'dont_move': dont_move}
+        prob_sum = 0
+        for prob in self.move_probabilities['move_right'].values():
+            if prob < 0:
+                print("error: probabilities should be positive")
+                return -1
+            prob_sum += prob
+
+        if prob_sum != 1:
+            print("error: probabilities should sum to 1")
+            return -1
 
     def set_move_continuos_probabilities(self, sigma=0.1):
         """ Set the noise for continuous movement
@@ -136,6 +162,15 @@ class RobotGroundTruth:
         step_dir = 0
 
         # YOUR CODE HERE
+        zero_to_one = random.uniform()
+        if zero_to_one < self.move_probabilities['move_left']['left']:
+            step_dir = -1
+            # if self.
+            # if on left then set to 0
+        elif zero_to_one < self.move_probabilities['move_left']['left'] + self.move_probabilities['move_left']['right']:
+            step_dir = 1
+        else:
+            step_dir = 0
 
         # This returns the actual move amount, clamped to 0, 1
         #   i.e., don't run off the end of the hallway
@@ -151,7 +186,17 @@ class RobotGroundTruth:
         step_dir = 0
 
         # YOUR CODE HERE
-
+        zero_to_one = random.uniform()
+        if zero_to_one < self.move_probabilities['move_right']['right']:
+            step_dir = 1
+            # if self.robot_loc < step_size:
+            #     count_left_walls += 1
+            # if self.
+            # if on right then set to 0
+        elif zero_to_one < self.move_probabilities['move_right']['right'] + self.move_probabilities['move_right']['left']:
+            step_dir = -1
+        else:
+            step_dir = 0
         return self._move_clamped_discrete(step_dir * step_size)
 
     def move_continuous(self, amount):
