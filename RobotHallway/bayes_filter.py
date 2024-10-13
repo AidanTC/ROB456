@@ -102,18 +102,45 @@ class BayesFilter:
         #  one already - any error is just numerical
 
         # YOUR CODE HERE
-        # sum = 0
-        prob_copy = self.probabilities
-        for index, prob in enumerate(self.probabilities):
-            if index == len(self.probabilities) - 1:
-                # far right is no longer possible as we moved from it, or were already to the left of it
-                self.probabilities[index] = 0
-            elif index == 0:
-                # add the next to left spot with the left because it is more liekly
-                self.probabilities[index] += prob_copy[index + 1]
+        prob_copy = [0] * len(self.probabilities)
+        for i, prob in enumerate(self.probabilities):
+            # if we start on the left edge then we cant have moved right from one to the left 
+            if i == 0:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i] + 
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1])
+
+            # if we start on the right edge then we cant have moved left from one to the right, 
+            # but we could have moved right and hit the wall, or moved right from the left
+            elif i == len(prob_copy) - 1:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i])
+            
             else:
-                # shift one to the left
-                self.probabilities[index] = prob_copy[index + 1]
+                # the chance of being in any space given that we said to move right:
+                # said to move right and didn't move + 
+                # said to move right from the left square and moved right + 
+                # said to move right from the right square and moved left 
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1] + 
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1] )
+        
+        self.probabilities = prob_copy
+
+        # This code logically works, but doesnt use bayes 
+        # self.probabilities = prob_copy
+        # prob_copy = self.probabilities
+        # for index, prob in enumerate(self.probabilities):
+        #     if index == len(self.probabilities) - 1:
+        #         # far right is no longer possible as we moved from it, or were already to the left of it
+        #         self.probabilities[index] = 0
+        #     elif index == 0:
+        #         # add the next to left spot with the left because it is more liekly
+        #         self.probabilities[index] += prob_copy[index + 1]
+        #     else:
+        #         # shift one to the left
+        #         self.probabilities[index] = prob_copy[index + 1]
             
 
 
@@ -124,20 +151,24 @@ class BayesFilter:
 
         # bayes assignment
         # YOUR CODE HERE
-        # print(self.probabilities[i])
-        sum = 0
+        # sum = 0
         prob_copy = [0] * len(self.probabilities)
+        # print("start")
+        # print("new:", prob_copy)
+        # print("starting", self.probabilities)
         for i, prob in enumerate(self.probabilities):
-
             # if we start on the left edge then we cant have moved right from one to the left 
             if i == 0:
                 prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i] + 
                 robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1])
 
-            # if we start on the right edge then we cant have moved left from one to the right 
-            elif i == len(prob_copy):
+            # if we start on the right edge then we cant have moved left from one to the right, 
+            # but we could have moved right and hit the wall, or moved right from the left
+            elif i == len(prob_copy) - 1:
                 prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
-                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1])
+                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] +
+                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i])
             
             else:
                 # the chance of being in any space given that we said to move right:
@@ -147,15 +178,14 @@ class BayesFilter:
                 prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
                 robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] + 
                 robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1] )
-            sum +=prob_copy[i]
+            # sum +=prob_copy[i]
 
-        for i, prob in enumerate(self.probabilities):
-            prob_copy[i]/=sum
-
-
-    
-    # print("sum is: ", sum)
-    # print("doors is: ", realdoorcount)
+        # dont need to normalize
+        # for i, prob in enumerate(self.probabilities):
+        #     print(prob_copy[i])
+        #     prob_copy[i]/=sum
+            
+        self.probabilities = prob_copy
     
 
     def one_full_update(self, world_ground_truth, robot_ground_truth, robot_sensor, u: str, z: bool):
@@ -175,6 +205,14 @@ class BayesFilter:
         #  Step 1 predict: update your belief by the action (call one of update_belief_move_left or update_belief_move_right)
         #  Step 2 correct: do the correction step (update belief by the sensor reading)
         # YOUR CODE HERE
+
+        if u == 'move_left':
+            self.update_belief_move_left(robot_ground_truth)
+        else:
+            self.update_belief_move_right(robot_ground_truth)
+        self.update_belief_sensor_reading(world_ground_truth, robot_sensor, z)
+
+
 
 
 def check_uniform(bf):
@@ -333,6 +371,9 @@ def test_move_update(b_print=True):
 
     # Read in some move sequences and compare your result to the correct answer
     import json
+    # CHANGE THIS NOT ROBOTHALLWAY
+    # with open("RobotHallway/Data/check_bayes_filter.json", "r") as f:
+
     with open("Data/check_bayes_filter.json", "r") as f:
         answers = json.load(f)
 
