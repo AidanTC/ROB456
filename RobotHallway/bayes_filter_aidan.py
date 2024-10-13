@@ -5,7 +5,7 @@
 import numpy as np
 
 from world_ground_truth import WorldGroundTruth
-from robot_sensors import RobotSensors
+from RobotHallway.robot_sensors_owen import RobotSensors
 from robot_ground_truth import RobotGroundTruth
 
 

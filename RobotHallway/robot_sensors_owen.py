@@ -26,7 +26,8 @@ class RobotSensors:
         # YOUR CODE HERE
 
         # default to 50/50 chance maybe dont need that?        
-        self.door_probs = {'door': {'True': .5, 'False': .5}, 'no_door': {'True': .5, 'False': .5}}
+        # self.door_probs = {'door': {'True': .5, 'False': .5}, 'no_door': {'True': .5, 'False': .5}}
+        self.door_probabilities = {'door': {'sees door': .5, 'sees no door': .5}, 'no door': {'sees door': .5, 'sees no door': .5}}
 
         # In the GUI version, these will be called with values from the GUI after the RobotSensors instance
         #   has been created
@@ -44,11 +45,17 @@ class RobotSensors:
         #  Reminder: You should have created the dictionary to hold the dictionaries in the __init__ method above
         #  Second note: all variables should be referenced with self.
         # YOUR CODE HERE
-        self.door_probs['door']['True'] = in_prob_see_door_if_door
-        self.door_probs['door']['False'] = 1 - in_prob_see_door_if_door
+        # self.door_probs['door']['True'] = in_prob_see_door_if_door
+        # self.door_probs['door']['False'] = 1 - in_prob_see_door_if_door
 
-        self.door_probs['no_door']['True'] = in_prob_see_door_if_not_door
-        self.door_probs['no_door']['False'] = 1 - in_prob_see_door_if_not_door
+        # self.door_probs['no_door']['True'] = in_prob_see_door_if_not_door
+        # self.door_probs['no_door']['False'] = 1 - in_prob_see_door_if_not_door
+
+        self.door_probabilities['door']['sees door'] = in_prob_see_door_if_door
+        self.door_probabilities['door']['sees no door'] = 1 - in_prob_see_door_if_door
+
+        self.door_probabilities['no door']['sees door'] = in_prob_see_door_if_not_door
+        self.door_probabilities['no door']['sees no door'] = 1 - in_prob_see_door_if_not_door
 
     def set_distance_wall_sensor_probabilities(self, sigma=0.1):
         """ Setup the wall sensor probabilities (store them in the dictionary)
@@ -81,18 +88,30 @@ class RobotSensors:
         # Note: This is just the sample_boolean code from your probabilities assignment
         # YOUR CODE HERE
         zero_to_one = random.uniform()
+        # if is_in_front_of_door:
+        #     if zero_to_one < self.door_probs['door']['True']:
+        #         return True
+        #     else:
+        #         return False
+        # else:
+        #     if zero_to_one < self.door_probs['no_door']['True']:
+        #         return True
+        #     else:
+        #         return False
+            
         if is_in_front_of_door:
-            if zero_to_one < self.door_probs['door']['True']:
+            if zero_to_one < self.door_probabilities['door']['True']:
                 return True
             else:
                 return False
         else:
-            if zero_to_one < self.door_probs['no_door']['True']:
+            if zero_to_one < self.door_probabilities['no_door']['True']:
                 return True
             else:
                 return False
-        
-        
+            
+
+
     def query_distance_to_wall(self, robot_gt):
         """ Return a distance reading (with correct noise) of the robot's location
         This returns the estimated robot's location by measuring the distance to the left/right walls - i.e., it
