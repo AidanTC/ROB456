@@ -5,7 +5,7 @@
 import numpy as np
 
 from world_ground_truth import WorldGroundTruth
-from robot_sensors import RobotSensors
+from RobotHallway.robot_sensors_owen import RobotSensors
 from robot_ground_truth import RobotGroundTruth
 
 
@@ -102,53 +102,31 @@ class BayesFilter:
         #  one already - any error is just numerical
 
         # YOUR CODE HERE
-        newProbs = np.zeros(np.size(self.probabilities))
+        prob_copy = [0] * len(self.probabilities)
+        for i, prob in enumerate(self.probabilities):
+            # if we start on the left edge then we cant have moved right from one to the left 
+            if i == 0:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i] + 
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1])
 
-        for i , bin in enumerate(self.probabilities):
-            if i == 0: #Bin is the far left one, if the robot moves left it stays in the same spot
-                newProbs[i] += robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i]
-                newProbs[i + 1] += robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i]
-            elif i == np.size(self.probabilities) - 1: #Bin is the far right one, if the robot moves right it stays in the same spot
-                newProbs[i - 1] += robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i]
-            else: #Bin is any of the middle ones, loops through the conditions and assigns probabilties to the correct bin
-                for j , trans in enumerate(robot_ground_truth.move_probabilities["move_left"].keys()):
-                    newProbs[i + (j - 1)] += robot_ground_truth.move_probabilities["move_left"][trans] * self.probabilities[i]
-        
-        #Normalization
-        num = np.sum(newProbs)
-        for i in range(np.size(newProbs)):
-            self.probabilities = newProbs / num
-
-
-        # prob_copy = self.probabilities
-        # # prob_copy = [0] * len(self.probabilities)
-        # for i, prob in enumerate(self.probabilities):
-        #     # if we start on the left edge then we cant have moved right from one to the left 
-        #     if i == 0:
-        #         prob_copy[i] += ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i] + 
-        #         robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1])
-
-        #     # if we start on the right edge then we cant have moved left from one to the right, 
-        #     # but we could have moved right and hit the wall, or moved right from the left
-        #     elif i == len(prob_copy) - 1:
-        #         prob_copy[i] += ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1])
+            # if we start on the right edge then we cant have moved left from one to the right, 
+            # but we could have moved right and hit the wall, or moved right from the left
+            elif i == len(prob_copy) - 1:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1])
             
-        #     else:
-        #         # the chance of being in any space given that we said to move right:
-        #         # said to move right and didn't move + 
-        #         # said to move right from the left square and moved right + 
-        #         # said to move right from the right square and moved left 
-        #         prob_copy[i] += ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1] + 
-        #         robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1] )
+            else:
+                # the chance of being in any space given that we said to move right:
+                # said to move right and didn't move + 
+                # said to move right from the left square and moved right + 
+                # said to move right from the right square and moved left 
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_left"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_left"]["right"] * self.probabilities[i - 1] + 
+                robot_ground_truth.move_probabilities["move_left"]["left"] * self.probabilities[i + 1] )
         
-        # self.probabilities = prob_copy
+        self.probabilities = prob_copy
 
         # This code logically works, but doesnt use bayes 
         # self.probabilities = prob_copy
@@ -173,62 +151,41 @@ class BayesFilter:
 
         # bayes assignment
         # YOUR CODE HERE
-
-        newProbs = np.zeros(np.size(self.probabilities))
-
-        for i , bin in enumerate(self.probabilities):
-            if i == 0: #Bin is the far left one, if the robot moves left it stays in the same spot
-                newProbs[i] += robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i]
-                newProbs[i + 1] += robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i]
-            elif i == np.size(self.probabilities) - 1: #Bin is the far right one, if the robot moves right it stays in the same spot
-                newProbs[i - 1] += robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i]
-                newProbs[i] += robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i]
-            else: #Bin is any of the middle ones, loops through the conditions and assigns probabilties to the correct bin
-                for j , trans in enumerate(robot_ground_truth.move_probabilities["move_right"].keys()):
-                    newProbs[i + (j - 1)] += robot_ground_truth.move_probabilities["move_right"][trans] * self.probabilities[i]
-        
-        #Normalization
-        num = np.sum(newProbs)
-        for i in range(np.size(newProbs)):
-            self.probabilities = newProbs / num
-
         # sum = 0
-        # prob_copy = [0] * len(self.probabilities)
-        # # print("start")
-        # # print("new:", prob_copy)
-        # # print("starting", self.probabilities)
+        prob_copy = [0] * len(self.probabilities)
+        # print("start")
+        # print("new:", prob_copy)
+        # print("starting", self.probabilities)
+        for i, prob in enumerate(self.probabilities):
+            # if we start on the left edge then we cant have moved right from one to the left 
+            if i == 0:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i] + 
+                robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1])
+
+            # if we start on the right edge then we cant have moved left from one to the right, 
+            # but we could have moved right and hit the wall, or moved right from the left
+            elif i == len(prob_copy) - 1:
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] +
+                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i])
+            
+            else:
+                # the chance of being in any space given that we said to move right:
+                # said to move right and didn't move + 
+                # said to move right from the left square and moved right + 
+                # said to move right from the right square and moved left 
+                prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
+                robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] + 
+                robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1] )
+            # sum +=prob_copy[i]
+
+        # dont need to normalize
         # for i, prob in enumerate(self.probabilities):
-        #     # if we start on the left edge then we cant have moved right from one to the left 
-        #     if i == 0:
-        #         prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i] + 
-        #         robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1])
-
-        #     # if we start on the right edge then we cant have moved left from one to the right, 
-        #     # but we could have moved right and hit the wall, or moved right from the left
-        #     elif i == len(prob_copy) - 1:
-        #         prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] +
-        #         robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i])
+        #     print(prob_copy[i])
+        #     prob_copy[i]/=sum
             
-        #     else:
-        #         # the chance of being in any space given that we said to move right:
-        #         # said to move right and didn't move + 
-        #         # said to move right from the left square and moved right + 
-        #         # said to move right from the right square and moved left 
-        #         prob_copy[i] = ( robot_ground_truth.move_probabilities["move_right"]["dont_move"] * self.probabilities[i] +
-        #         robot_ground_truth.move_probabilities["move_right"]["right"] * self.probabilities[i - 1] + 
-        #         robot_ground_truth.move_probabilities["move_right"]["left"] * self.probabilities[i + 1] )
-        #     # sum +=prob_copy[i]
-
-        # # dont need to normalize
-        # # for i, prob in enumerate(self.probabilities):
-        # #     print(prob_copy[i])
-        # #     prob_copy[i]/=sum
-            
-        # self.probabilities = prob_copy
+        self.probabilities = prob_copy
     
 
     def one_full_update(self, world_ground_truth, robot_ground_truth, robot_sensor, u: str, z: bool):
@@ -415,8 +372,8 @@ def test_move_update(b_print=True):
     # Read in some move sequences and compare your result to the correct answer
     import json
     # CHANGE THIS NOT ROBOTHALLWAY
-
     # with open("RobotHallway/Data/check_bayes_filter.json", "r") as f:
+
     with open("Data/check_bayes_filter.json", "r") as f:
         answers = json.load(f)
 
