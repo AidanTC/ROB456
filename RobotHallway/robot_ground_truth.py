@@ -65,7 +65,7 @@ class RobotGroundTruth:
 
         # YOUR CODE HERE
         dont_move = 1 - move_left - move_right
-        self.move_probabilities['move_left'] = {'left': move_left, 'right': move_right, 'dont_move': dont_move}
+        self.move_probabilities['move_left'] = {'left': move_left, 'dont_move': dont_move, 'right': move_right}
         prob_sum = 0
         for prob in self.move_probabilities['move_left'].values():
             # print(prob)
@@ -91,7 +91,7 @@ class RobotGroundTruth:
 
         # YOUR CODE HERE
         dont_move = 1 - move_left - move_right
-        self.move_probabilities['move_right'] = {'left': move_left, 'right': move_right, 'dont_move': dont_move}
+        self.move_probabilities['move_right'] = {'left': move_left, 'dont_move': dont_move, 'right': move_right }
         prob_sum = 0
         for prob in self.move_probabilities['move_right'].values():
             if prob < 0:
