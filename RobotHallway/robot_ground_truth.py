@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from numpy import random
 
 
 # This class keeps track of the "ground truth" of the robot's location
@@ -93,13 +92,15 @@ class RobotGroundTruth:
         dont_move = 1 - move_left - move_right
         self.move_probabilities['move_right'] = {'left': move_left, 'dont_move': dont_move, 'right': move_right }
         prob_sum = 0
+        # print(self.move_probabilities)
         for prob in self.move_probabilities['move_right'].values():
+            # print(prob)
             if prob < 0:
                 print("error: probabilities should be positive")
                 return -1
             prob_sum += prob
 
-        if prob_sum != 1:
+        if prob_sum != np.real_if_close(1):
             print("error: probabilities should sum to 1")
             return -1
 
@@ -162,15 +163,13 @@ class RobotGroundTruth:
         step_dir = 0
 
         # YOUR CODE HERE
-        zero_to_one = random.uniform()
+        zero_to_one = np.random.uniform()
         if zero_to_one < self.move_probabilities['move_left']['left']:
             step_dir = -1
-            # if self.
-            # if on left then set to 0
-        elif zero_to_one < self.move_probabilities['move_left']['left'] + self.move_probabilities['move_left']['right']:
-            step_dir = 1
-        else:
+        elif zero_to_one < self.move_probabilities['move_left']['left'] + self.move_probabilities['move_left']['dont_move']:
             step_dir = 0
+        else:
+            step_dir = 1
 
         # This returns the actual move amount, clamped to 0, 1
         #   i.e., don't run off the end of the hallway
@@ -186,17 +185,13 @@ class RobotGroundTruth:
         step_dir = 0
 
         # YOUR CODE HERE
-        zero_to_one = random.uniform()
-        if zero_to_one < self.move_probabilities['move_right']['right']:
-            step_dir = 1
-            # if self.robot_loc < step_size:
-            #     count_left_walls += 1
-            # if self.
-            # if on right then set to 0
-        elif zero_to_one < self.move_probabilities['move_right']['right'] + self.move_probabilities['move_right']['left']:
+        zero_to_one = np.random.uniform()
+        if zero_to_one <= self.move_probabilities['move_right']['left']:
             step_dir = -1
-        else:
+        elif zero_to_one <= self.move_probabilities['move_right']['left'] + self.move_probabilities['move_right']['dont_move']:
             step_dir = 0
+        else:
+            step_dir = 1
         return self._move_clamped_discrete(step_dir * step_size)
 
     def move_continuous(self, amount):

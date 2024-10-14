@@ -80,7 +80,7 @@ class RobotSensors:
         # STEP 2 - use the random number (and your first if statement) to determine if you should return True or False
         # Note: This is just the sample_boolean code from your probabilities assignment
         # YOUR CODE HERE
-        zero_to_one = random.uniform()
+        zero_to_one = np.random.uniform()
         if is_in_front_of_door:
             if zero_to_one < self.door_probs['door']['True']:
                 return True
