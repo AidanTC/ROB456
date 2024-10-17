@@ -115,6 +115,11 @@ class RobotGroundTruth:
         # Check that sigma is positive
 
         # YOUR CODE HERE
+        if sigma < 0:
+            print("Aidan error: sigma must be greater than 0")
+
+        # sigma is standard deviation 
+        self.move_probabilities["move_continuous"] = {"sigma": sigma, "mean": 0}
 
     # Just a helper function to place robot in middle of bin
     def _adjust_middle_of_bin(self, n_divs):
@@ -204,6 +209,8 @@ class RobotGroundTruth:
         noisy_amount = amount
 
         # YOUR CODE HERE
+        noisy_amount += np.random.normal(self.move_probabilities["move_continuous"]["mean"], self.move_probabilities["move_continuous"]["sigma"])
+        
 
         # Actually move (don't run off of end)
         return self._move_clamped_continuous(noisy_amount)
@@ -329,6 +336,7 @@ if __name__ == '__main__':
     robot_gt.reset_location()
     robot_gt.set_move_continuos_probabilities(0.2)
     ret_value = robot_gt.move_continuous(0.0)
+    # it seems to me that this test doesnt work, but doesnt matter?
     if 0.49 < ret_value < 0.61:
         print(f"Robot ground truth: Passed move continuous check")
 

@@ -37,7 +37,25 @@ class KalmanFilter:
 
         # TODO: Calculate C and K, then update self.mu and self.sigma
         # YOUR CODE HERE
+
+        sensor_sigma = robot_sensors.wall_probs['distance_wall']['sigma']
+        prior_sigma = self.sigma
+        prior_mean = self.mu
+        # Think C=1 bc sensor just measures distance, no velocity or acceleration
+        C = 1 
+
+        # K = sigma_prior * C^T (C * sigma_prior * C^T + noise)^-1
+        K = prior_sigma * C / ((C * prior_sigma * C) + sensor_sigma)
+
+        # new mu = u prior + K * (z - C* u prior)
+        self.mu = prior_mean + K * (dist_reading - (C * prior_mean))
+
+        # new sigma = (I - K*C) * sigma_prior
+        # I = identity matrix = 1 
+        self.sigma = (1 - (K*C)) * prior_sigma 
+
         return self.mu, self.sigma
+
 
     # Given a movement, update Gaussian
     def update_continuous_move(self, robot_ground_truth, amount):
@@ -51,6 +69,18 @@ class KalmanFilter:
 
         # TODO: Update mu and sigma by Ax + Bu equation
         # YOUR CODE HERE
+
+        # action u = A * last action + B * action taken
+        # thinking a and b are 1
+        prior_sigma = self.sigma
+        prior_mean = self.mu
+
+        self.mu = prior_mean + amount 
+
+        # sigma sig = A * last sigma * A + noise
+        # still thinking A is 1
+        self.sigma = prior_sigma + robot_ground_truth.move_probabilities["move_continuous"]["sigma"]
+
         return self.mu, self.sigma
 
     def one_full_update(self, robot_ground_truth, robot_sensor, u: float, z: float):
@@ -69,6 +99,8 @@ class KalmanFilter:
         #  Step 1 predict: update your belief by the action (move the Gaussian)
         #  Step 2 correct: do the correction step (move the Gaussian to be between the current mean and the sensor reading)
         # YOUR CODE HERE
+        self.update_continuous_move(robot_ground_truth, u)
+        self.update_belief_distance_sensor(robot_sensor, z)
 
 
 
@@ -83,6 +115,7 @@ def test_kalman_update(b_print=True):
         print("Testing Kalman")
     # Generate some move sequences and compare to the correct answer
     import json
+    # with open("RobotHallway/Data/check_kalman_filter.json", "r") as f:
     with open("Data/check_kalman_filter.json", "r") as f:
         answers = json.load(f)
 

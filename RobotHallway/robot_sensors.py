@@ -28,6 +28,9 @@ class RobotSensors:
         # default to 50/50 chance maybe dont need that?        
         self.door_probs = {'door': {'True': .5, 'False': .5}, 'no_door': {'True': .5, 'False': .5}}
 
+        # distance_wall - returns a distance (with noise)
+        self.wall_probs = {'distance_wall': {"sigma": 0, "mean": 0}}
+
         # In the GUI version, these will be called with values from the GUI after the RobotSensors instance
         #   has been created
         # Actually SET the values for the dictionaries
@@ -58,6 +61,8 @@ class RobotSensors:
         # Kalman assignment
         # TODO: Store the mean and standard deviation
         # YOUR CODE HERE
+        self.wall_probs["distance_wall"]["sigma"] = sigma
+        self.wall_probs["distance_wall"]["mean"] = 0
 
     def query_door(self, robot_gt, world_gt):
         """ Query the door sensor
@@ -105,6 +110,9 @@ class RobotSensors:
         #  This is the Gaussian assignment from your probabilities homework
         # YOUR CODE HERE
 
+        # create a gaussian to represent the noise + the actual location
+        # The assumption is that the sensor is accurate with some gaussian noise on each side
+        return np.random.normal(self.wall_probs["distance_wall"]["mean"], self.wall_probs["distance_wall"]["sigma"]) + robot_gt.robot_loc
 
 def test_discrete_sensors(b_print=True):
     """ Test that the door sensor is working correctly
@@ -162,7 +170,7 @@ def test_continuous_sensor(b_print=True):
     # Doing this as a for loop with pre-allocating the data (np.zeros instead of a list with an append) because
     #   we are going to place the robot randomly at each iteration, then measure the distance the sensor returns,
     #   rather than keeping the robot in one place all the time
-    # This is the exactly how one would measure sensor noise in the first place, btw
+    # This is the exactly how one would measure sensor noise in the first place
     n_samples = 10000
     dist_measured = np.zeros(n_samples)
     robot_sensor.set_distance_wall_sensor_probabilities(sigma)
