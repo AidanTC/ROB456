@@ -30,6 +30,10 @@ class ParticleFilter:
         #  Step 1: create n_samples of the state space, uniformly distributed
         #  Step 2: create n_samples of uniform weights
         # YOUR CODE HERE
+        self.particles = np.random.uniform(size=n_samples)
+        self.weights = np.random.uniform(size=n_samples)
+        # self.weights = 1/n_samples
+
 
     def update_particles_move_continuous(self, robot_ground_truth, amount):
         """ Update state estimation based on sensor reading
@@ -45,6 +49,16 @@ class ParticleFilter:
         #   If it runs into a wall, offset it from the wall by a random amount
         # YOUR CODE HERE
         # print(f"CL {count_off_left_wall} CR {count_off_right_wall}")
+        for particle in self.particles:
+            noise = np.random.normal(robot_ground_truth.move_probabilities["move_continuous"]["mean"], robot_ground_truth.move_probabilities["move_continuous"]["sigma"])
+            particle += amount + noise 
+
+            # if hits a wall offset by a random ammount
+            if particle >= 1:
+                particle -= noise
+            if particle <= 0:
+                particle += noise
+
 
     def calculate_weights_door_sensor_reading(self, world_ground_truth, robot_sensor, sensor_reading):
         """ Update your weights based on the sensor reading being true (door) or false (no door)
@@ -72,6 +86,16 @@ class ParticleFilter:
         # will NOT set the weight in self.weights to the value to 3
 
         # YOUR CODE HERE
+        # world_ground_truth.is_location_in_front_of_door(robot_gt.robot_loc)
+
+        for index, position in enumerate(self.particles):
+            # prob of being at any sample is 1/total?
+            px = 1 / len(self.particles)
+
+            # given prob from door sensor
+            # if world_ground_truth.
+            pyx = robot_sensor.door_probs['door'][str(sensor_reading)]
+            self.particles[index] = px * pyx
 
     def calculate_weights_distance_wall(self, robot_sensors, dist_reading):
         """ Calculate weights based on distance reading
@@ -115,6 +139,19 @@ class ParticleFilter:
         #         Note that np.where can be used to substantially speed up finding which particle
         #   Part 3: Set the weights back to uniform (just to be neat and clean)
         # YOUR CODE HERE
+
+        newAr = np.array
+        zero_to_one = np.random.uniform()
+        for sample in self.particles:
+            # np.where(zero_to_one < sample)
+                
+            # pick this point
+            if zero_to_one < sample:
+                newAr.append(sample)
+            else:
+                
+
+
 
     def one_full_update_door(self, world_ground_truth, robot_ground_truth, robot_sensor, u: float, z: bool):
         """This is the full update loop that takes in one action, followed by a door sensor reading
