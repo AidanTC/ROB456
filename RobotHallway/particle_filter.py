@@ -55,9 +55,9 @@ class ParticleFilter:
 
             # if hits a wall offset by a random ammount
             if particle >= 1:
-                particle -= noise
+                particle = 1 - abs(noise)
             if particle <= 0:
-                particle += noise
+                particle = 0 + abs(noise)
 
 
     def calculate_weights_door_sensor_reading(self, world_ground_truth, robot_sensor, sensor_reading):
@@ -86,16 +86,23 @@ class ParticleFilter:
         # will NOT set the weight in self.weights to the value to 3
 
         # YOUR CODE HERE
-        # world_ground_truth.is_location_in_front_of_door(robot_gt.robot_loc)
+
 
         for index, position in enumerate(self.particles):
+            
+            inFrontOfDoor = world_ground_truth.is_location_in_front_of_door(position)
             # prob of being at any sample is 1/total?
-            px = 1 / len(self.particles)
+            # px = 1 / len(self.particles)
+            # this is prior weight?
+            px = self.weights[index] 
 
             # given prob from door sensor
-            # if world_ground_truth.
-            pyx = robot_sensor.door_probs['door'][str(sensor_reading)]
-            self.particles[index] = px * pyx
+            pyx = 0
+            if inFrontOfDoor:
+                pyx = robot_sensor.door_probs['door'][str(sensor_reading)]
+            else:
+                pyx = robot_sensor.door_probs['no_door'][str(sensor_reading)]
+            self.weights[index] = px * pyx
 
     def calculate_weights_distance_wall(self, robot_sensors, dist_reading):
         """ Calculate weights based on distance reading
@@ -107,7 +114,7 @@ class ParticleFilter:
 
         # TODO
         #  See calculate_weights above - only this time, set the weight for the particle based on how likely it
-        #   was that the distance sensor was correct, given the location in the particle.
+        #  was that the distance sensor was correct, given the location in the particle.
 
         # Yes, you can put function definitions in functions.
         def gaussian(x, mu, sigma):
@@ -119,6 +126,8 @@ class ParticleFilter:
             return (1.0 / (sigma * np.sqrt(2 * np.pi))) * np.exp(- (x - mu) ** 2 / (2 * sigma ** 2))
 
         # YOUR CODE HERE
+
+        val = gaussian(dist_reading, robot_sensors.wall_probs['mean'], robot_seonsor.wall_probs['sigma'])
 
     def resample_particles(self):
         """ Importance sampling - take the current set of particles and weights and make a new set
