@@ -53,16 +53,23 @@ class ParticleFilter:
         # YOUR CODE HERE
         # print(f"CL {count_off_left_wall} CR {count_off_right_wall}")
         for i, particle in enumerate(self.particles):
-            noise = np.random.normal(0, robot_ground_truth.move_probabilities["move_continuous"]["sigma"])
+            noise = np.random.normal(robot_ground_truth.move_probabilities["move_continuous"]["mean"], robot_ground_truth.move_probabilities["move_continuous"]["sigma"])
+            # noise = 0
+            # noise = np.random.normal(0, robot_ground_truth.move_prob6abilities["move_continuous"]["sigma"]) / 2
             self.particles[i] += amount + noise 
 
             # if hits a wall offset by a random ammount
-            if self.particles[i] >= 1:
-                self.particles[i] = 1 - np.random.uniform(0, 0.01)  
-                # self.particles[i] = 1 - abs(noise)
-            if self.particles[i] <= 0:
-                self.particles[i] = np.random.uniform(0, 0.01) 
-                # self.particles[i] = 0 + abs(noise)
+            if self.particles[i] > 1:
+                # self.particles[i] = 1 - np.random.uniform(0, 0.01) #bounce by a small number
+                self.particles[i] = 1.0 - abs(noise) #bounce by noise
+                # self.particles[i] -= 1 #bounce by remainder
+                # self.particles[i] = 1.0  #dont bounce
+
+            if self.particles[i] < 0:
+                # self.particles[i] = np.random.uniform(0, 0.01) #bounce by a small number
+                self.particles[i] = 0 + abs(noise) #bounce by noise
+                # self.particles[i] = abs(self.particles[i]) #bounce by remainder
+                # self.particles[i] = 0  #dont bounce
             
 
 
