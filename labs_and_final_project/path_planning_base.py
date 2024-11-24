@@ -179,16 +179,16 @@ def dijkstra(im, robot_loc, goal_loc):
     # While the list is not empty - use a break for if the node is the end node
     while priority_queue:
         # Get the current best node off of the list
-        current_node = heapq.heappop(priority_queue)                #node = pop node from queue
+        current_node = heapq.heappop(priority_queue)
         # Pop returns the value and the i, j
-        node_score = current_node[0]                                #value = node’s value on queue
+        node_score = current_node[0]
         node_ij = current_node[1]
 
         # Showing how to get this data back out of visited
-            #visited_triplet = visited[node_ij]
-            #visited_distance = visited_triplet[0]
-            #visited_parent = visited_triplet[1]
-            #visited_closed_yn = visited_triplet[2]
+        visited_triplet = visited[node_ij]
+        visited_distance = visited_triplet[0]
+        visited_parent = visited_triplet[1]
+        visited_closed_yn = visited_triplet[2]
 
         # TODO
         #  Step 1: Break out of the loop if node_ij is the goal node
@@ -197,56 +197,26 @@ def dijkstra(im, robot_loc, goal_loc):
         #    Now do the instructions from the slide (the actual algorithm)
         #  Lec 8_1: Planning, at the end
         #  https://docs.google.com/presentation/d/1pt8AcSKS2TbKpTAVV190pRHgS_M38ldtHQHIltcYH6Y/edit#slide=id.g18d0c3a1e7d_0_0
-        
-        if node_ij == goal_loc:          #Break out of the loop if node_ij is the goal node
-            break
-
-        if visited[node_ij][2] == True:  #If this node is closed, skip it
-            continue
-
-        visited[node_ij] = (node_score, visited[node_ij][1], True)   #Set the node to closed
-
-        for adj_node in eight_connected(current_node[1]):                           #for adj_nodes(slide)
-            if not is_free(im, adj_node):       #no OOBers allowed
-                continue
-
-            if abs(adj_node[0] - node_ij[0]) + abs(adj_node[1] - node_ij[1]) == 1:
-                edge_cost = 1                                                      #funky bizz to get diagonals to logically cost less than straights
-            else:                                                                  #45 right triangle 
-                edge_cost = np.sqrt(2)
-
-            if adj_node not in visited:#point doesn't exist yet
-                visited[adj_node] = (node_score + edge_cost, node_ij, False)        #adj_node’s value = value + edge_cost(slide)
-                        #                                      ^                    #adj_node’s parent = node(slide)
-                heapq.heappush(priority_queue, (node_score + edge_cost, adj_node))#Feeding the Queue
-
-            elif (node_score + edge_cost) < visited[adj_node][0]:               #if value + edge_cost < adj_node’s value(slide)
-                visited[adj_node] = (node_score + edge_cost, node_ij, False)        #adj_node’s value = value + edge_cost(slide)
-                        #                                       ^                   #adj_node’s parent = node(slide)
-                heapq.heappush(priority_queue, (node_score + edge_cost, adj_node))#Feeding the Queue
-
+        # YOUR CODE HERE
 
     # Now check that we actually found the goal node
     try_2 = goal_loc
     if not goal_loc in visited:
-        # TODO: Deal with not being able to get to the goal loc          
+        # TODO: Deal with not being able to get to the goal loc
         # BEGIN SOLULTION
         best = 1e30
-        for v in visited:                                                              #unchanged 
+        for v in visited:
             if v[0] < best:
                 best = v[0]
                 try_2 = v[1]
         return dijkstra(im, robot_loc, try_2)
         raise ValueError(f"Goal {goal_loc} not reached")
         return []
-#
-    path = []
-    # TODO: Build the path by starting at the goal node and working backwards
-    Node = goal_loc
-    while Node is not None:
-        path.append(Node)
-        Node = visited[Node][1]  #following the parents home 
 
+    path = []
+    path.append(goal_loc)
+    # TODO: Build the path by starting at the goal node and working backwards
+    # YOUR CODE HERE
 
     return path
 
@@ -313,6 +283,3 @@ if __name__ == '__main__':
     # plt.show()
 
     print("Done")
-
-
-#ඞ amogus
